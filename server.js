@@ -35,6 +35,9 @@ const nutrition = new Pool({
 });
 
 
+nutrition.connect()
+  .then(() => console.log("✅ Connected to PostgreSQL"))
+  .catch(err => console.error("❌ Failed to connect to DB:", err));
 
 //=========================================================
 
