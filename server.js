@@ -17,22 +17,22 @@ const courses = [
 
 
 
-const nutrition = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "nutrition",
-  password: "23082539",
-  port: 5432,
-});
-
-
-// const pool = new Pool({
-//   user: process.env.DB_USER,
-//   host: process.env.DB_HOST,
-//   database: process.env.DB_DATABASE,
-//   password: process.env.DB_PASSWORD,
-//   port: process.env.DB_PORT,
+// const nutrition = new Pool({
+//   user: "postgres",
+//   host: "localhost",
+//   database: "nutrition",
+//   password: "23082539",
+//   port: 5432,
 // });
+
+
+const nutrition = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+});
 
 
 
@@ -54,15 +54,23 @@ const nutrition = new Pool({
 
 app.post('/create-table', async (req, res) => {
   try {
+    const { catagory } = req.body
+    console.log("this issss", catagory);
     const query = `
-      CREATE TABLE IF NOT EXISTS example_table (
+      CREATE TABLE IF NOT EXISTS ${catagory} (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(100),
-        age INTEGER,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        food VARCHAR(100) NOT NULL,
+        guantity REAL NOT NULL,
+        calories REAL NOT NULL,
+        protein REAL,
+        carb REAL,
+        fat REAL,
+        sugar REAL,
+        sodium REAL,
+        price REAL
       );
     `;
-    await pool.query(query);
+    await nutrition.query(query);
     res.status(200).json({ message: '✅ สร้างตารางสำเร็จแล้ว' });
   } catch (err) {
     console.error(err);
@@ -71,14 +79,15 @@ app.post('/create-table', async (req, res) => {
 });
 
 
-// app.get("/courses", async (req, res) => {
-//   try {
-//     const result = await nutrition.query("SELECT * FROM meat");
-//     res.json(result.rows);
-//   } catch (err) {
-//     res.status(500).json({ message: "เกิดข้อผิดพลาด" });
-//   }
-// });
+app.get("/catagory/:catagory", async (req, res) => {
+  try {
+    const catagory = req.params.catagory
+    const result = await nutrition.query(`SELECT * FROM ${catagory}`);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: "เกิดข้อผิดพลาด" });
+  }
+});
 
 
 app.get('/courses', async (req, res) => {
@@ -90,7 +99,7 @@ app.get('/courses', async (req, res) => {
     ORDER BY table_name;
     `;
     const result = await nutrition.query(query);
-    res.json( result.rows );
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '❌ ไม่สามารถดึงข้อมูลตารางได้' });
