@@ -86,7 +86,12 @@ app.get("/catagory/:catagory", async (req, res) => {
   try {
     const catagory = req.params.catagory
     const result = await nutrition.query(`SELECT * FROM ${catagory}`);
-    res.json(result.rows);
+    const title = await nutrition.query(`SELECT title FROM ${catagory}`);
+
+    res.json({
+      tableData: result.rows,
+      titles: title.rows
+    });
   } catch (err) {
     res.status(500).json({ message: "เกิดข้อผิดพลาด" });
   }
@@ -106,6 +111,33 @@ app.get('/courses', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '❌ ไม่สามารถดึงข้อมูลตารางได้' });
+  }
+});
+
+app.post('/adddata', async (req, res) => {
+  try {
+    const { catagory, addData } = req.body
+    let titles = "";
+    let data = ""
+    for (let i = 0; i < Object.keys(addData).length; i++) {
+      key = Object.keys(addData)[i]
+      titles = titles + key;
+      data = data + addData[key];
+      if (i !== (Object.keys(addData).length) - 1) {
+        titles = titles + ",";
+        data = data + ",";
+      }
+    }
+    await nutrition.query(`
+      INSERT INTO ${catagory} (${titles})
+      VALUES 
+        (${data}),
+    `);
+
+    res.status(200).json({ message: '✅ success to add data' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '❌ somthing wrong' });
   }
 });
 
