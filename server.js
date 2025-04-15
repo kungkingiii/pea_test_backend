@@ -17,22 +17,22 @@ const courses = [
 
 
 
-// const nutrition = new Pool({
-//   user: "postgres",
-//   host: "localhost",
-//   database: "nutrition",
-//   password: "23082539",
-//   port: 5432,
-// });
-
-
 const nutrition = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  user: "postgres",
+  host: "localhost",
+  database: "nutrition",
+  password: "23082539",
+  port: 5432,
 });
+
+
+// const nutrition = new Pool({
+//   user: process.env.DB_USER,
+//   host: process.env.DB_HOST,
+//   database: process.env.DB_DATABASE,
+//   password: process.env.DB_PASSWORD,
+//   port: process.env.DB_PORT,
+// });
 
 
 nutrition.connect()
@@ -86,13 +86,15 @@ app.get("/catagory/:catagory", async (req, res) => {
   try {
     const catagory = req.params.catagory
     const result = await nutrition.query(`SELECT * FROM ${catagory}`);
-    const title = await nutrition.query(`SELECT title FROM ${catagory}`);
-
+    const title = await nutrition.query(`SELECT column_name FROM information_schema.columns WHERE table_name = $1`,
+      [catagory]);
+    console.log("this is titlwe", title)
     res.json({
       tableData: result.rows,
       titles: title.rows
     });
   } catch (err) {
+
     res.status(500).json({ message: "เกิดข้อผิดพลาด" });
   }
 });
@@ -117,23 +119,15 @@ app.get('/courses', async (req, res) => {
 app.post('/adddata', async (req, res) => {
   try {
     const { catagory, addData } = req.body
-    let titles = "";
-    let data = ""
-    for (let i = 0; i < Object.keys(addData).length; i++) {
-      key = Object.keys(addData)[i]
-      titles = titles + key;
-      data = data + addData[key];
-      if (i !== (Object.keys(addData).length) - 1) {
-        titles = titles + ",";
-        data = data + ",";
-      }
-    }
-    await nutrition.query(`
-      INSERT INTO ${catagory} (${titles})
-      VALUES 
-        (${data}),
-    `);
-
+    let titles = Object.keys(addData);
+    let data = titles.map((title, id) => "$" + `${id + 1}`).join(", ");
+    const values = Object.values(addData);
+    const querry = `
+      INSERT INTO ${catagory} (${titles.join(", ")})
+      VALUES (${data})
+    `;
+    console.log("fhuie", data, querry, values)
+    await nutrition.query(querry, values)
     res.status(200).json({ message: '✅ success to add data' });
   } catch (err) {
     console.error(err);
