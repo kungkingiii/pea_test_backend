@@ -17,16 +17,16 @@ const courses = [
 
 
 
-// const nutrition = new Pool({
-//   user: "postgres",
+// const myData = new Pool({
+//   user: "Hallykmr",
 //   host: "localhost",
-//   database: "nutrition",
+//   database: "myData",
 //   password: "23082539",
 //   port: 5432,
 // });
 
 
-const nutrition = new Pool({
+const myData = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
@@ -35,7 +35,7 @@ const nutrition = new Pool({
 });
 
 
-nutrition.connect()
+myData.connect()
   .then(() => console.log("✅ Connected to PostgreSQL"))
   .catch(err => console.error("❌ Failed to connect to DB:", err));
 
@@ -73,7 +73,7 @@ app.post('/create-table', async (req, res) => {
         price REAL
       );
     `;
-    await nutrition.query(query);
+    await myData.query(query);
     res.status(200).json({ message: '✅ สร้างตารางสำเร็จแล้ว' });
   } catch (err) {
     console.error(err);
@@ -85,8 +85,8 @@ app.post('/create-table', async (req, res) => {
 app.get("/catagory/:catagory", async (req, res) => {
   try {
     const catagory = req.params.catagory
-    const result = await nutrition.query(`SELECT * FROM ${catagory}`);
-    const title = await nutrition.query(`SELECT column_name FROM information_schema.columns WHERE table_name = $1`,
+    const result = await myData.query(`SELECT * FROM ${catagory}`);
+    const title = await myData.query(`SELECT column_name FROM information_schema.columns WHERE table_name = $1`,
       [catagory]);
     console.log("this is titlwe", title)
     res.json({
@@ -108,7 +108,7 @@ app.get('/courses', async (req, res) => {
     WHERE table_schema = 'public'
     ORDER BY table_name;
     `;
-    const result = await nutrition.query(query);
+    const result = await myData.query(query);
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -127,7 +127,7 @@ app.post('/adddata', async (req, res) => {
       VALUES (${data})
     `;
     console.log("fhuie", data, querry, values)
-    await nutrition.query(querry, values)
+    await myData.query(querry, values)
     res.status(200).json({ message: '✅ success to add data' });
   } catch (err) {
     console.error(err);
