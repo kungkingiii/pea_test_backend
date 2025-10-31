@@ -293,7 +293,28 @@ app.get("/userdata", authenticate, async (req, res) => {
 });
 
 //===============================================================
+myData.connect()
+  .then(() => console.log("connect PostgreSQL"))
+  .catch(err => console.error("connect PostgreSQL fail", err));
 
+app.get("/courses", async (req, res) => {
+  try {
+    const { search } = req.query;
+    let query = "SELECT * FROM courses";
+    let values = [];
+
+    if (search) {
+      query += " WHERE title ILIKE $1";
+      values.push(`%${search}%`);
+    }
+
+    const result = await myData.query(query, values);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "something wrong on server" });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
