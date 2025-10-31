@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
-// const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
@@ -211,6 +211,7 @@ app.post("/register", async (req, res) => {
 
   try {
     const checkUser = await myData.query("SELECT * FROM users WHERE email = $1", [username]);
+    console.log("checkUser",checkUser);
     if (checkUser.rows.length > 0) {
       return res.status(400).json({ message: "username already exist" });
     }
@@ -242,10 +243,11 @@ app.post("/login", async (req, res) => {
 
   try {
     const checkUser = await myData.query("SELECT * FROM users WHERE username = $1", [username]);
-    console.log("checkUser", (await bcrypt.compare(password, checkUser.rows[0].password)));
+    console.log("testtt",checkUser)
     if (checkUser.rows.length == 0 || !(await bcrypt.compare(password, checkUser.rows[0].password))) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
+    
 
     const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.json({ token });
